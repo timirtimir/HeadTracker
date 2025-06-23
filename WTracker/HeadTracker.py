@@ -1,22 +1,20 @@
 from basicFaceMeshModule import FaceMeshDetector
 import cv2 as cv
-from pynput.mouse import Controller
 import pyautogui
 import pyvjoy as vjoy
 
 def main():
     cam_w, cam_h = pyautogui.size()
     x_scale, y_scale = 200, 120
-    screen_origin = int(cam_w/2), int(cam_h/2)
-    deadzone = 2
-    smoothed_x, smoothed_y = 0, 0
-    smoothing_factor = 0.8
+    prev_x, prev_y = 0, 0
+    vjoy_X, vjoy_Y = int(32767/2), int(32767/2)
+    deadzone = 1
+
 
     cap = cv.VideoCapture(0)
     cap.set(3, cam_w)
     cap.set(4, cam_h)
 
-    mouse = Controller()
     detector = FaceMeshDetector(minDetectCon=0.7, minTrackCon=0.7)
     print(detector.minDetectCon, detector.minTrackCon)
     j = vjoy.VJoyDevice(1)
@@ -27,18 +25,19 @@ def main():
         img, rel_x, rel_y = detector.get_relative_position(img, target_id=4)
 
         if rel_x is not None and rel_y is not None:
-            smoothed_x = (smoothing_factor * smoothed_x) + ((1 - smoothing_factor) * rel_x)
-            smoothed_y = (smoothing_factor * smoothed_y) + ((1 - smoothing_factor) * rel_y)
-            percentage_X = (smoothed_x / x_scale) * 100
-            percentage_Y = (smoothed_y / y_scale) * -100
+            percentage_X = (rel_x / x_scale) * 100
+            percentage_Y = (rel_y / y_scale) * -100
             percentage_X = max(min(percentage_X, 100), -100)
             percentage_Y = max(min(percentage_Y, 100), -100)
-            if abs(percentage_X) > deadzone or abs(percentage_Y) > deadzone:
+            if abs(percentage_X - prev_x) > deadzone:   
                 vjoy_X = int((percentage_X + 100) / 200 * 32767)
+                prev_x = percentage_X
+            if abs(percentage_Y - prev_y) > deadzone:   
                 vjoy_Y = int((percentage_Y + 100) / 200 * 32767)
-                
-                j.set_axis(vjoy.HID_USAGE_X, vjoy_X)
-                j.set_axis(vjoy.HID_USAGE_Y, vjoy_Y)
+                prev_y = percentage_Y  
+            
+            j.set_axis(vjoy.HID_USAGE_X, vjoy_X)
+            j.set_axis(vjoy.HID_USAGE_Y, vjoy_Y)
             
             
             
