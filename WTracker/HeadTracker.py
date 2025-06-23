@@ -17,7 +17,8 @@ def main():
     cap.set(4, cam_h)
 
     mouse = Controller()
-    detector = FaceMeshDetector()
+    detector = FaceMeshDetector(minDetectCon=0.7, minTrackCon=0.7)
+    print(detector.minDetectCon, detector.minTrackCon)
     j = vjoy.VJoyDevice(1)
 
     while True:
@@ -32,15 +33,12 @@ def main():
             percentage_Y = (smoothed_y / y_scale) * -100
             percentage_X = max(min(percentage_X, 100), -100)
             percentage_Y = max(min(percentage_Y, 100), -100)
-            # mouse.position = (percentage_X, percentage_Y)
             if abs(percentage_X) > deadzone or abs(percentage_Y) > deadzone:
                 vjoy_X = int((percentage_X + 100) / 200 * 32767)
                 vjoy_Y = int((percentage_Y + 100) / 200 * 32767)
                 
-                # Set vJoy axes
                 j.set_axis(vjoy.HID_USAGE_X, vjoy_X)
                 j.set_axis(vjoy.HID_USAGE_Y, vjoy_Y)
-                #mouse.position = ((rel_x * scale) + screen_origin[0], (rel_y * scale) + screen_origin[1])
             
             
             

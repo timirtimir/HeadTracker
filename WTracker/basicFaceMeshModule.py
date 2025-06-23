@@ -3,7 +3,7 @@ import mediapipe as mp
 import time
 
 class FaceMeshDetector():
-    def __init__(self, staticMode = False, maxFaces = 1, minDetectCon = 0.5, minTrackCon = 0.5):
+    def __init__(self, staticMode = False, maxFaces = 1, minDetectCon = 0.7, minTrackCon = 0.7):
         self.staticMode = staticMode
         self.maxFaces = maxFaces
         self.minDetectCon = minDetectCon
@@ -12,7 +12,7 @@ class FaceMeshDetector():
 
         self.mpDraw = mp.solutions.drawing_utils
         self.mpFaceMesh = mp.solutions.face_mesh
-        self.faceMesh = self.mpFaceMesh.FaceMesh() #self.staticMode, self.maxFaces, self.minDetectCon, self.minTrackCon
+        self.faceMesh = self.mpFaceMesh.FaceMesh(max_num_faces = self.maxFaces, static_image_mode = self.staticMode, min_detection_confidence = self.minDetectCon, min_tracking_confidence = self.minTrackCon) #self.staticMode, self.maxFaces, self.minDetectCon, self.minTrackCon
         self.drawSpec = self.mpDraw.DrawingSpec(color=(0, 255, 0), thickness=1, circle_radius=1)
 
     def findFaceMesh(self, img, draw = True, target_id = None):
@@ -59,7 +59,7 @@ class FaceMeshDetector():
 #         cTime = time.time()
 #         fps = 1 / (cTime - pTime)
 #         pTime = cTime
-#         cv.putText(img, f'FPS: {int(fps)}', (20, 40), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+#         cv.putText(img, f'FPS: {int(fps)}', (20, 40), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
 #         cv.imshow("Image", img)
 #         if cv.waitKey(1) & 0xFF == ord('q'): 
 #             break
