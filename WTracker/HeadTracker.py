@@ -25,8 +25,14 @@ def main():
     while True:
         success, img = cap.read()
         img = cv.flip(img, 1)
-        img, rel_x, rel_y = detector.get_relative_position(img, target_id=4)
-        
+        img, rel_x, rel_y = detector.get_relative_position(img, target_id=4, draw=False)
+        lm_list = detector.get_lm_list(img)
+        if len(lm_list) != 0:
+            x1, y1 = lm_list[386][1], lm_list[386][2]
+            x2, y2 = lm_list[374][1], lm_list[374][2]
+
+            cv.line(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
+            
         if rel_x is not None and rel_y is not None:
             # Set percentage values based on the relative position
             percentage_x = (rel_x / x_scale) * 100
@@ -51,9 +57,9 @@ def main():
             
             
             
-        # cv.imshow("Image", img)
-        # if cv.waitKey(1) & 0xFF == ord('q'):
-        #     break
+        cv.imshow("Image", img)
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
     cap.release()
     cv.destroyAllWindows()
 
