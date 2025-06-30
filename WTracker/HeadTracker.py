@@ -11,7 +11,9 @@ def main():
     vjoy_x, vjoy_y = int(32767/2), int(32767/2)
     deadzone_x, deadzone_y = 0, 0
     deadzone_base = 0.1
-
+    initial_len_line = None 
+    below_threshold = False
+    threshold = 88
     # Initialize camera
     cap = cv.VideoCapture(0)
     cap.set(3, cam_w)
@@ -32,7 +34,16 @@ def main():
             x2, y2 = lm_list[374][1], lm_list[374][2]
 
             cv.line(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
-            
+            len_line = ((x2 - x1) + (y2 - y1))
+            if initial_len_line is None:
+                initial_len_line = len_line
+            else:
+                line_percentage = len_line / initial_len_line * 100
+                if below_threshold and line_percentage >= threshold:
+                    pyautogui.press('y')
+                elif not below_threshold and line_percentage < threshold:
+                    pyautogui.press('y')
+                below_threshold = line_percentage < threshold
         if rel_x is not None and rel_y is not None:
             # Set percentage values based on the relative position
             percentage_x = (rel_x / x_scale) * 100
@@ -51,17 +62,16 @@ def main():
             if abs(percentage_y - prev_y) > deadzone_y:   
                 vjoy_y = int((percentage_y + 100) / 200 * 32767)
                 prev_y = percentage_y  
-            print(deadzone_x, deadzone_y)
             j.set_axis(vjoy.HID_USAGE_X, vjoy_x)
             j.set_axis(vjoy.HID_USAGE_Y, vjoy_y)
             
             
             
-        cv.imshow("Image", img)
-        if cv.waitKey(1) & 0xFF == ord('q'):
-            break
-    cap.release()
-    cv.destroyAllWindows()
+    #     cv.imshow("Image", img)
+    #     if cv.waitKey(1) & 0xFF == ord('q'):
+    #         break
+    # cap.release()
+    # cv.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
