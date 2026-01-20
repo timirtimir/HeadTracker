@@ -10,8 +10,11 @@ class HeadTracker:
     def __init__(self, x_scale = 200, y_scale = 120, deadzone_base = 0.1, threshold = 88):
         # Initialise camera and vJoy constants 
         self.cam_w, self.cam_h = pyautogui.size()
+        self.rel_x, self.rel_y = 0, 0
+        self.percentage_x, self.percentage_y = 0, 0
         self.prev_x, self.prev_y = 0, 0
-        self.vjoy_x, self.vjoy_y = 32768 // 2, 32768 // 2
+        self.vjoy_centre = 32768 // 2
+        self.vjoy_x, self.vjoy_y = self.vjoy_centre, self.vjoy_centre
         self.deadzone_x, self.deadzone_y = 0, 0
         self.initial_len_line = None
         self.below_threshold = False
@@ -35,7 +38,7 @@ class HeadTracker:
             if not success:
                 continue
             img = cv.flip(img, 1)
-            img, rel_x, rel_y = self.detector.get_relative_position(img, target_id=4, draw=False)
+            img, self.rel_x, self.rel_y = self.detector.get_relative_position(img, target_id=4, draw=False)
             lm_list = self.detector.get_lm_list(img)
             # Logic for blink detection
             if len(lm_list) != 0:
@@ -53,24 +56,24 @@ class HeadTracker:
                     elif not self.below_threshold and line_percentage < self.threshold:
                         pyautogui.press('y')
                     self.below_threshold = line_percentage < self.threshold
-            if rel_x is not None and rel_y is not None:
+            if self.rel_x is not None and self.rel_y is not None:
                 # Set percentage values based on the relative position
-                percentage_x = (rel_x / self.x_scale) * 100
-                percentage_y = (rel_y / self.y_scale) * -100
-                percentage_x = max(min(percentage_x, 100), -100)
-                percentage_y = max(min(percentage_y, 100), -100)
+                self.percentage_x = (self.rel_x / self.x_scale) * 100
+                self.percentage_y = (self.rel_y / self.y_scale) * -100
+                self.percentage_x = max(min(self.percentage_x, 100), -100)
+                self.percentage_y = max(min(self.percentage_y, 100), -100)
 
                 # Set deadzone values that increase linearly for smoothing
-                self.deadzone_x = self.deadzone_base + percentage_x/100
-                self.deadzone_y = self.deadzone_base + percentage_y/100
+                self.deadzone_x = self.deadzone_base + self.percentage_x/100
+                self.deadzone_y = self.deadzone_base + self.percentage_y/100
 
                 # Implement the deadzone logic and move the vJoy axes
-                if abs(percentage_x - self.prev_x) > self.deadzone_x:   
-                    self.vjoy_x = int((percentage_x + 100) / 200 * 32768)
-                    self.prev_x = percentage_x
-                if abs(percentage_y - self.prev_y) > self.deadzone_y:   
-                    self.vjoy_y = int((percentage_y + 100) / 200 * 32768)
-                    self.prev_y = percentage_y  
+                if abs(self.percentage_x - self.prev_x) > self.deadzone_x:   
+                    self.vjoy_x = int((self.percentage_x + 100) / 200 * 32768)
+                    self.prev_x = self.percentage_x
+                if abs(self.percentage_y - self.prev_y) > self.deadzone_y:   
+                    self.vjoy_y = int((self.percentage_y + 100) / 200 * 32768)
+                    self.prev_y = self.percentage_y  
                 self.j.set_axis(vjoy.HID_USAGE_X, self.vjoy_x)
                 self.j.set_axis(vjoy.HID_USAGE_Y, self.vjoy_y)
                 time.sleep(0.004)
@@ -79,5 +82,5 @@ class HeadTracker:
                 break
         # Exit program and recenter the joystick
         self.cap.release()
-        self.j.set_axis(vjoy.HID_USAGE_X, 16384)
-        self.j.set_axis(vjoy.HID_USAGE_Y, 16384)
+        self.j.set_axis(vjoy.HID_USAGE_X, self.vjoy_centre)
+        self.j.set_axis(vjoy.HID_USAGE_Y, self.vjoy_centre)
