@@ -51,10 +51,10 @@ class HeadTracker:
                     self.initial_len_line = len_line
                 else:
                     line_percentage = len_line / self.initial_len_line * 100
-                    if self.below_threshold and line_percentage >= self.threshold:
-                        pyautogui.press('y')
-                    elif not self.below_threshold and line_percentage < self.threshold:
-                        pyautogui.press('y')
+                    # if self.below_threshold and line_percentage >= self.threshold:
+                    #     pyautogui.press('y')
+                    # elif not self.below_threshold and line_percentage < self.threshold:
+                    #     pyautogui.press('y')
                     self.below_threshold = line_percentage < self.threshold
             if self.rel_x is not None and self.rel_y is not None:
                 # Set percentage values based on the relative position

@@ -49,18 +49,32 @@ class ft_gui:
             self.read_only_value_labels.append(temp_value)
         for i, (k, v) in enumerate(self.maluable_root.items()):
             temp_name = tk.Label(self.system_settings, text=k, bg=self.frame_widget_bgColour)
-            temp_value = tk.Label(self.system_settings, text=getattr(self.headtracker, v), bg=self.frame_widget_bgColour)
+            temp_value = tk.Entry(self.system_settings, bg=self.frame_widget_bgColour)
+            temp_value.insert(0, getattr(self.headtracker, v))
+            # temp_value = tk.Label(self.system_settings, text=getattr(self.headtracker, v), bg=self.frame_widget_bgColour)
             temp_name.grid(row=i+1, column=0, columnspan=1, sticky="ew")
             temp_value.grid(row=i+1, column=1, columnspan=1, sticky="ew")
             self.maluable_value_labels.append(temp_value)
-
+            
         self.monitor_frame.grid_columnconfigure(0, weight=1, minsize=self.label_width)
         self.monitor_frame.grid_columnconfigure(1, weight=1, minsize=self.label_width)
         self.system_settings.grid_columnconfigure(0, weight=1, minsize=self.label_width)
         self.system_settings.grid_columnconfigure(1, weight=1, minsize=self.label_width)
+
+        self.submit_button = tk.Button(self.window, text ="Submit", command=self.submit)
+        self.submit_button.pack()
+    def submit(self):
+        for i, (_, v) in enumerate(self.maluable_root.items()):
+            input = self.maluable_value_labels[i].get()
+            try:
+                value = float(input)
+                setattr(self.headtracker, v, value)
+                print("Submited", v, value, "////", getattr(self.headtracker, v))
+            except ValueError:
+                print("Value Error")
     def update(self):
         for i, (_, v) in enumerate(self.read_only_root.items()):
-            if v is not None:
+            if self.headtracker is not None:
                 value = round(getattr(self.headtracker, v), 1)
                 self.read_only_value_labels[i].config(text=value)
         self.window.after(50, self.update)
