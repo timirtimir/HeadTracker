@@ -25,6 +25,8 @@ class ft_gui:
         self.window.iconphoto(True, self.logo)  
         self.window.config(background=self.window_bgColour)
 
+        self.window.protocol("WM_DELETE_WINDOW", self.kill_ht)
+
         self.monitor_frame = tk.Frame(self.window, width = self.frame_width, height=1, bd=2, relief="solid", highlightcolor=self.frame_borderColour)
         self.monitor_frame.pack(pady=20)
         self.monitor_frame.pack_propagate(False)
@@ -51,7 +53,6 @@ class ft_gui:
             temp_name = tk.Label(self.system_settings, text=k, bg=self.frame_widget_bgColour)
             temp_value = tk.Entry(self.system_settings, bg=self.frame_widget_bgColour)
             temp_value.insert(0, getattr(self.headtracker, v))
-            # temp_value = tk.Label(self.system_settings, text=getattr(self.headtracker, v), bg=self.frame_widget_bgColour)
             temp_name.grid(row=i+1, column=0, columnspan=1, sticky="ew")
             temp_value.grid(row=i+1, column=1, columnspan=1, sticky="ew")
             self.maluable_value_labels.append(temp_value)
@@ -74,10 +75,13 @@ class ft_gui:
                 print("Value Error")
     def update(self):
         for i, (_, v) in enumerate(self.read_only_root.items()):
-            if self.headtracker is not None:
+            if getattr(self.headtracker, v) is not None:
                 value = round(getattr(self.headtracker, v), 1)
                 self.read_only_value_labels[i].config(text=value)
         self.window.after(50, self.update)
     def run(self):
         self.update()
         self.window.mainloop()
+    def kill_ht(self):
+        self.headtracker.stop()
+        self.window.destroy()

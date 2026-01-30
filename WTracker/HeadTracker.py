@@ -4,7 +4,7 @@ import pyautogui
 import keyboard as kb
 import pyvjoy as vjoy
 import time
-
+import threading 
 
 class HeadTracker:
     def __init__(self, x_scale = 200, y_scale = 120, deadzone_base = 0.1, threshold = 88):
@@ -18,6 +18,7 @@ class HeadTracker:
         self.deadzone_x, self.deadzone_y = 0, 0
         self.initial_len_line = None
         self.below_threshold = False
+        self.stop_thread = threading.Event()
 
         self.x_scale, self.y_scale = x_scale, y_scale
         self.threshold = threshold
@@ -33,7 +34,7 @@ class HeadTracker:
         self.j = vjoy.VJoyDevice(1)
 
     def run(self):
-        while True:
+        while not self.stop_thread.is_set():
             success, img = self.cap.read()
             if not success:
                 continue
@@ -77,10 +78,9 @@ class HeadTracker:
                 self.j.set_axis(vjoy.HID_USAGE_X, self.vjoy_x)
                 self.j.set_axis(vjoy.HID_USAGE_Y, self.vjoy_y)
                 time.sleep(0.004)
-
-            if kb.is_pressed('esc'):
-                break
         # Exit program and recenter the joystick
         self.cap.release()
         self.j.set_axis(vjoy.HID_USAGE_X, self.vjoy_centre)
         self.j.set_axis(vjoy.HID_USAGE_Y, self.vjoy_centre)
+    def stop(self):
+        self.stop_thread.set()
